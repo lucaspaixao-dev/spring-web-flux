@@ -1,0 +1,320 @@
+swagger: '2.0'
+info:
+  title: Mira Educação - Api de Pessoas
+  description: |
+    API para fornecer informações de pessoas.
+  version: 1.0.0
+
+tags:
+  - name: Pessoa
+    description: |
+      Endpoints para manipulação de pessoas.
+
+host: 'localhost:8182'
+basePath: /api/v1
+schemes:
+  - http
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /person:
+    get:
+      produces:
+        - application/stream+json
+      summary: Pessoa
+      description: |
+        Endpoint para retornar as pessoas cadastradas
+      tags:
+        - Pessoa
+      parameters:
+        - in: query
+          name: document
+          required: false
+          description: Buscar por CPF
+          type: number
+        - in: query
+          name: name
+          required: false
+          description: Buscar por Nome
+          type: string
+        - in: query
+          name: lastName
+          required: false
+          description: Buscar por Sobrenome
+          type: string
+
+      responses:
+        200:
+          description: |
+            Lista de pessoas da pesquisa
+          schema:
+            $ref: '#/definitions/PersonResponse'
+
+    post:
+      summary: Pessoa
+      description: |
+        Endpoint para salvar uma nova pessoa
+      tags:
+        - Pessoa
+      parameters:
+        - in: body
+          name: body
+          required: true
+          description: Dados para salvar a pessoa
+          schema:
+            $ref: '#/definitions/PersonRequest'
+
+      responses:
+        201:
+          description: |
+            Pessoa inserida com sucesso.
+          schema:
+            $ref: '#/definitions/PersonResponse'
+        400:
+          description: |
+            Requisição inválida.
+          schema:
+            $ref: '#/definitions/BadRequestException'
+        409:
+          description: |
+            CPF/E-mail já cadastrado.
+          schema:
+            $ref: '#/definitions/ConflictException'
+    put:
+      summary: Pessoa
+      description: |
+        Endpoint para alterar uma pessoa
+      tags:
+        - Pessoa
+      parameters:
+        - in: body
+          name: body
+          required: true
+          description: Dados para alterar a pessoa
+          schema:
+            $ref: '#/definitions/UpdatePersonRequest'
+
+      responses:
+        200:
+          description: |
+            Pessoa alterada com sucesso.
+          schema:
+            $ref: '#/definitions/PersonResponse'
+        400:
+          description: |
+            Requisição inválida.
+          schema:
+            $ref: '#/definitions/BadRequestException'
+        404:
+          description: |
+            Pessoa não encontrada.
+          schema:
+            $ref: '#/definitions/NotFoundException'
+        409:
+          description: |
+            CPF/E-mail já cadastrado.
+          schema:
+            $ref: '#/definitions/ConflictException'
+  /person/{id}:
+    delete:
+      summary: Pessoa
+      description: |
+        Endpoint para excluir uma pessoa
+
+        Este endpoint é idempotente, mesmo se não encontrar a pessoa na base, retorna sempre 204, com sucesso ou não
+      tags:
+        - Pessoa
+      parameters:
+        - in: path
+          name: id
+          type: string
+          required: true
+          description: ID para deletar a pessoa
+      responses:
+        204:
+          description: |
+            Body vázio
+  /persons:
+    post:
+      summary: Pessoa
+      description: |
+        Endpoint para salvar uma ou mais pessoas
+
+        Este endpoint retornará apenas as pessoas que foram inseridas com sucesso,
+        caso nenhum for inserido, nenhuma pessoa será retornada
+      tags:
+        - Pessoa
+      parameters:
+        - in: body
+          name: body
+          required: true
+          description: Dados para salvar a pessoa
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/PersonRequest'
+
+      responses:
+        201:
+          description: |
+            Pessoas inseridas com sucesso.
+          schema:
+            $ref: '#/definitions/PersonResponse'
+        400:
+          description: |
+            Requisição inválida.
+          schema:
+            $ref: '#/definitions/BadRequestException'
+        409:
+          description: |
+            CPF/E-mail já cadastrado.
+          schema:
+            $ref: '#/definitions/ConflictException'
+definitions:
+  BadRequestException:
+    type: object
+    properties:
+      error:
+        type: string
+        example: entrada_invalida
+      error_description:
+        type: string
+        example: |
+          O campo x não pode ser vázio.
+  NotFoundException:
+    type: object
+    properties:
+      error:
+        type: string
+        example: recurso_nao_encontrado
+      error_description:
+        type: string
+        example: |
+          Pessoa com o identificador x não econtrada.
+  ConflictException:
+    type: object
+    properties:
+      error:
+        type: string
+        example: recurso_existente
+      error_description:
+        type: string
+        example: |
+          CPF x já cadastrado.
+
+  PersonRequest:
+    type: object
+    properties:
+      name:
+        type: string
+        description: |
+          Nome da pessoa
+        example: Lucas
+      lastName:
+        type: string
+        description: |
+          Sobrenome da pessoa
+        example: Schwenke
+      document:
+        type: string
+        description: |
+          CPF da pessoa
+        example: 42536250881
+      birthDate:
+        type: string
+        description: |
+          Nascimento da pessoa
+        example: "1994-02-17"
+      address:
+        type: string
+        description: |
+          Endereço da pessoa
+        example: Rua João Pais, 8
+      phones:
+        type: array
+        description: |
+          Telefones da pessoa
+        items:
+          type: string
+          example: 11964692656
+      emails:
+        type: array
+        description: |
+          E-mails da pessoa
+        items:
+          type: string
+          example: lucasspxo@gmail.com
+
+  UpdatePersonRequest:
+    type: object
+    properties:
+      id:
+        type: string
+        description: |
+          ID da pessoa
+        example: 476dca87-60e6-48fb-970e-fadd936ca5a4
+    allOf:
+      - $ref: '#/definitions/PersonRequest'
+
+  PersonResponse:
+    type: object
+    properties:
+      id:
+        type: string
+        description: |
+          ID da pessoa inserida
+        example: 476dca87-60e6-48fb-970e-fadd936ca5a4
+      name:
+        type: string
+        description: |
+          Nome da pessoa inserida
+        example: Lucas
+      lastName:
+        type: string
+        description: |
+          Sobrenome da pessoa inserida
+        example: Schwenke
+      document:
+        type: string
+        description: |
+          CPF da pessoa da inserida
+        example: 42536250881
+      birthDate:
+        type: string
+        description: |
+          Nascimento da pessoa inerida
+        example: "1994-02-17"
+      address:
+        type: string
+        description: |
+          Endereço da pessoa inserida
+        example: Rua João Pais, 8
+      phones:
+        type: array
+        description: |
+          Telefones da pessoa inserida
+        items:
+          type: string
+          example: 11964692656
+      emails:
+        type: array
+        description: |
+          E-mails da pessoa inserida
+        items:
+          type: string
+          example: lucasspxo@gmail.com
+      active:
+        type: boolean
+        description: |
+          Status da pessoa inserida
+        example: true
+      createdAt:
+        type: object
+        description: |
+          Data de inserção da pessoa
+      updatedAt:
+        type: object
+        description: |
+          Data de alteração da pessoa
